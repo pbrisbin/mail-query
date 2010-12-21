@@ -1,12 +1,15 @@
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <string.h>
 #include <dirent.h>
 #include <stdbool.h>
 #include <stdlib.h>
 
-/* email parsing from
- * http://bytes.com/topic/c/answers/215251-regular-expressions-c
- */
+/* the global search string passed*/
+char *search_string;
+
+/* parse the name and email from a string */
 void print_email(char str[])
 {
   char name[51];
@@ -14,7 +17,8 @@ void print_email(char str[])
 
   int rc = sscanf(str, "%50[^<]<%50[^>]", name, email);
 
-  if (rc == 2)
+  /* good parse, and search string found in email or name */
+  if (rc == 2 && (strcasestr(email, search_string) || strcasestr(name, search_string)))
   {
     printf("%s\t%s\n", email, name);
   }
@@ -22,7 +26,7 @@ void print_email(char str[])
   free(str);
 }
  
-/* find the From: line in a file */
+/* find a From: line within the first 100 lines of a file */
 void find_from(char *fn)
 {
   FILE *file;
@@ -56,6 +60,7 @@ void find_from(char *fn)
   }
 }
 
+/* read a directories contents and operate on each file */
 int read_from_dir(char *path)
 {
   DIR *dir;
@@ -91,22 +96,22 @@ int read_from_dir(char *path)
   }
 }
  
-/* directory code from
- * http://www.metalshell.com/source_code/116/Read_Directory.html
- */
 int main(int argc, char *argv[])
 {
   char *path;
   int i;
 
   /* invalid usage */
-  if (argc < 2)
+  if (argc < 3)
   {
-    printf("usage: %s </path/to/mdir> ...\n", argv[0]);
+    printf("usage: %s <search string> </path/to/mdir> ...\n", argv[0]);
     return 1;
   }
 
-  for (i = 1; i < argc; i++)
+  /* first arg is search string */
+  search_string = argv[1];
+
+  for (i = 2; i < argc; i++)
   {
     /* check the new subdir */
     asprintf(&path, "%s/%s", argv[i], "new");
