@@ -3,9 +3,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <dirent.h>
+#include <regex.h>
 #include <stdlib.h>
 
-static char *search_string;
+#define REGEX_OPTS            REG_ICASE|REG_EXTENDED|REG_NOSUB|REG_NEWLINE
+
+static regex_t regex;
 static char **entries = NULL;
 static size_t count = 0;
 
@@ -19,7 +22,13 @@ void add_entries(char str[])
   int rc = sscanf(str, "%50[^<]<%50[^>]", name, email);
 
   /* good parse, and search string found in email or name */
-  if (rc == 2 && (strcasestr(email, search_string) || strcasestr(name, search_string)))
+  if (rc != 2) {
+    return;
+  }
+
+  /* if (strcasestr(email, search_string) || strcasestr(name, search_string)) */
+  if (regexec(&regex, name, 0, 0, 0) == REG_NOERROR ||
+      regexec(&regex, email, 0, 0, 0) == REG_NOERROR)
   {
     asprintf(&entry, "%s\t%s", email, name);
 
@@ -138,8 +147,11 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  /* first arg is search string */
-  search_string = argv[1];
+  if (regcomp(&regex, argv[1], REGEX_OPTS) != 0)
+  {
+    fprintf(stderr, "failed to compile regex: %s\n", argv[1]);
+    return 1;
+  }
 
   for (i = 2; i < argc; i++)
   {
@@ -167,5 +179,6 @@ int main(int argc, char *argv[])
   /* output */
   printf("\n");
   sort_and_print_entries();
+  regfree(&regex);
   return 0;
 }
