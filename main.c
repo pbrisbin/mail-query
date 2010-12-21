@@ -22,23 +22,25 @@ void add_entries(char str[])
   /* good parse, and search string found in email or name */
   if (rc == 2 && (strcasestr(email, search_string) || strcasestr(name, search_string)))
   {
-    //printf("%s\t%s\n", email, name);
     asprintf(&entry, "%s\t%s", email, name);
 
+    /* allocate memory for the new entries */
     if (!(entries = realloc(entries, ++count * sizeof *entries)))
     {
       fprintf(stderr, "malloc failed");
       return;
     }
 
+    /* add entries to the array */
     if (!(entries[count-1] = strdup(entry)))
     {
       fprintf(stderr, "strdup failed");
       return;
     }
+
+    free(entry);
   }
 
-  free(entry);
   free(str);
 }
  
@@ -76,7 +78,7 @@ void find_from(char *fn)
   }
 }
 
-/* read a directories contents and operate on each file */
+/* read a directory's contents and operate on each file */
 int read_from_dir(char *path)
 {
   DIR *dir;
@@ -112,13 +114,13 @@ int read_from_dir(char *path)
   }
 }
 
-/* sorting/uniquing code from dmenu_path */
+/* sorting/uniquing code bogarted from dmenu_path */
 int qstrcmp(const void *a, const void *b)
 {
   return strcmp(*(const char **)a, *(const char **)b);
 }
 
-void sort_and_print_entries()
+void sort_and_print_entries(void)
 {
   size_t i;
 
@@ -171,5 +173,8 @@ int main(int argc, char *argv[])
     free(path);
   }
 
+  /* output */
+  printf("\n");
   sort_and_print_entries();
+  return 0;
 }
