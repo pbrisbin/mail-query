@@ -1,11 +1,12 @@
 # Mail Query
 
-Query the contents of a Maildir for From: address. Print these addresses 
-in the format expected by mutt as a query_command.
+Query the contents of a Maildir for From: addresses. Print these 
+addresses in the format expected by mutt as a query_command similar to 
+`abook --mutt-query foo`
 
-Lots of todos left before this is useful though.
+### Usage:
 
-Current cli usage:
+    # add to muttrc
+    set query_command = "mail-query '%s' ~/Mail/GMail/INBOX"
 
-    mutt-query ~/Mail/GMail/INBOX
-
+This is my first anything in C, so be nice.
