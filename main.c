@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <dirent.h>
-#include <stdbool.h>
 #include <stdlib.h>
 
 static char *search_string;
@@ -49,7 +48,6 @@ void find_from(char *fn)
 {
   FILE *file;
   char line[1000];
-  bool found = false;
 
   /* a hack for now */
   int i     = 1;
@@ -57,7 +55,8 @@ void find_from(char *fn)
 
   if (file = fopen(fn, "r"))
   {
-    while (!found && i <= limit)
+    //while (line != NULL) // this does not work
+    while (i <= limit)
     {
       i++;
 
@@ -66,7 +65,7 @@ void find_from(char *fn)
       {
         /* trim leading "From: " and trailing "\n" */
         add_entries(strndup(line + 6, strlen(line)-1));
-        found = true;
+        break;
       }
     }
 
