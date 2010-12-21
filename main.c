@@ -49,32 +49,24 @@ void find_from(char *fn)
   FILE *file;
   char line[1000];
 
-  /* a hack for now */
-  int i     = 1;
-  int limit = 100; /* look for From: in the first n lines */
-
-  if (file = fopen(fn, "r"))
-  {
-    //while (line != NULL) // this does not work
-    while (i <= limit)
-    {
-      i++;
-
-      fgets(line, 1000, file);
-      if (strncmp("From: ", line, 6) == 0)
-      {
-        /* trim leading "From: " and trailing "\n" */
-        add_entries(strndup(line + 6, strlen(line)-1));
-        break;
-      }
-    }
-
-    fclose(file);
-  }
-  else
+  file = fopen(fn, "r");
+  if (!file)
   {
     fprintf(stderr, "%s: failed to open file.\n", fn);
+    return;
   }
+
+  while ((fgets(line, 1000, file) != NULL))
+  {
+    if (strncmp("From: ", line, 6) == 0)
+    {
+      /* trim leading "From: " and trailing "\n" */
+      add_entries(strndup(line + 6, strlen(line)-1));
+      break;
+    }
+  }
+
+  fclose(file);
 }
 
 /* read a directory's contents and operate on each file */
