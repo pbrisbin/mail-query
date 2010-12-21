@@ -6,23 +6,39 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-/* the global search string passed*/
-char *search_string;
+static char *search_string;
+static char **entries = NULL;
+static size_t count = 0;
 
 /* parse the name and email from a string */
-void print_email(char str[])
+void add_entries(char str[])
 {
   char name[51];
   char email[51];
+  char *entry;
 
   int rc = sscanf(str, "%50[^<]<%50[^>]", name, email);
 
   /* good parse, and search string found in email or name */
   if (rc == 2 && (strcasestr(email, search_string) || strcasestr(name, search_string)))
   {
-    printf("%s\t%s\n", email, name);
+    //printf("%s\t%s\n", email, name);
+    asprintf(&entry, "%s\t%s", email, name);
+
+    if (!(entries = realloc(entries, ++count * sizeof *entries)))
+    {
+      fprintf(stderr, "malloc failed");
+      return;
+    }
+
+    if (!(entries[count-1] = strdup(entry)))
+    {
+      fprintf(stderr, "strdup failed");
+      return;
+    }
   }
 
+  free(entry);
   free(str);
 }
  
@@ -47,7 +63,7 @@ void find_from(char *fn)
       if (strncmp("From: ", line, 6) == 0)
       {
         /* trim leading "From: " and trailing "\n" */
-        print_email(strndup(line + 6, strlen(line)-1));
+        add_entries(strndup(line + 6, strlen(line)-1));
         found = true;
       }
     }
@@ -95,6 +111,27 @@ int read_from_dir(char *path)
     return 1;
   }
 }
+
+/* sorting/uniquing code from dmenu_path */
+int qstrcmp(const void *a, const void *b)
+{
+  return strcmp(*(const char **)a, *(const char **)b);
+}
+
+void sort_and_print_entries()
+{
+  size_t i;
+
+  qsort(entries, count, sizeof *entries, qstrcmp);
+
+  for (i = 0; i < count; i++)
+  {
+    if (i > 0 && !strcmp(entries[i], entries[i-1]))
+      continue;
+
+    printf("%s\n", entries[i]);
+  }
+}
  
 int main(int argc, char *argv[])
 {
@@ -133,4 +170,6 @@ int main(int argc, char *argv[])
 
     free(path);
   }
+
+  sort_and_print_entries();
 }
