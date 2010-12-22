@@ -153,6 +153,7 @@ void print_entries() {
   char *prev_email = NULL;
   address_t **entry;
 
+  printf("\n");
   for (i = 0, entry = entries; i < entry_count; i++, entry++) {
     if (prev_email && strcmp(prev_email, (*entry)->email) == 0) {
       continue;
