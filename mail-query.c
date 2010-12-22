@@ -141,6 +141,7 @@ int read_maildir(const char *path, DIR *dirp) {
       continue;
     }
 
+    free(filename);
     parse_mailfile(fp);
     fclose(fp);
   }
@@ -201,6 +202,7 @@ int main(int argc, char *argv[]) {
   }
 
   regfree(&regex);
+  regfree(&emailverifier);
 
   qsort(entries, entry_count, sizeof *entries, address_cmp); 
   print_entries();
