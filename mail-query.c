@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #define REGEX_OPTS            REG_ICASE|REG_EXTENDED|REG_NOSUB|REG_NEWLINE
+#define EMAIL_VERIFY_REGEX    "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}$"
 
 typedef struct __address_t {
   char *name;
@@ -17,6 +18,7 @@ typedef struct __address_t {
 } address_t;
 
 static regex_t regex;
+static regex_t emailverifier;
 static address_t **entries = NULL;
 static int entry_count = 0;
 
@@ -66,17 +68,29 @@ void add_address(address_t *address) {
 }
 
 address_t *parse_from(char *line) {
-  char name[64], email[64];
+  char *name, *email, *ptr;
   address_t *address;
-  int count;
 
-  count = sscanf(line, "%50[^<]<%50[^>]", name, email);
-  if (count != 2) {
+  ptr = strchr(line, '<');
+  if (!ptr) {
     return(NULL);
   }
 
+  *ptr = '\0';
+  name = line;
+  email = ptr + 1;
+  *(ptr + 1 + strcspn(email, ">")) = '\0';
+
   strtrim(name);
   strtrim(email);
+
+  if (strlen(name) == 0 || strlen(email) == 0) {
+    return(NULL);
+  }
+
+  if (regexec(&emailverifier, email, 0, 0, 0) == REG_NOMATCH) {
+    return(NULL);
+  }
 
   if (regexec(&regex, name, 0, 0, 0) == REG_NOMATCH &&
       regexec(&regex, email, 0, 0, 0) == REG_NOMATCH) {
@@ -162,6 +176,11 @@ int main(int argc, char *argv[]) {
 
   if (regcomp(&regex, argv[1], REGEX_OPTS) != 0) {
     fprintf(stderr, "failed to compile regex: %s\n", argv[1]);
+    return(1);
+  }
+
+  if (regcomp(&emailverifier, EMAIL_VERIFY_REGEX, REGEX_OPTS) != 0) {
+    fprintf(stderr, "failed to compile regex: %s\n", EMAIL_VERIFY_REGEX);
     return(1);
   }
 
