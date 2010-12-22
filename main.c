@@ -62,7 +62,6 @@ void find_from(char *fn)
   if (!file)
   {
     fprintf(stderr, "%s: failed to open file.\n", fn);
-    return;
   }
 
   while ((fgets(line, 1000, file) != NULL))
@@ -89,7 +88,7 @@ int read_from_dir(char *path)
 
   if ((dir = opendir(path)) == NULL)
   {
-    fprintf(stderr, "%s: unable to open directory.\n", dir);
+    fprintf(stderr, "%s: unable to open directory.\n", path);
     return 1;
   }
 
@@ -109,7 +108,7 @@ int read_from_dir(char *path)
 
   if (closedir(dir) == -1)
   {
-    fprintf(stderr, "%s: unable to close directory.\n", dir);
+    fprintf(stderr, "%s: unable to close directory.\n", path);
     return 1;
   }
 }
@@ -161,6 +160,7 @@ int main(int argc, char *argv[])
     if (read_from_dir(path) == 1)
     {
       fprintf(stderr, "%s: unable to read from path.\n", path);
+      return 1;
     }
 
     free(path);
@@ -171,6 +171,7 @@ int main(int argc, char *argv[])
     if (read_from_dir(path) == 1)
     {
       fprintf(stderr, "%s: unable to read from path.\n", path);
+      return 1;
     }
 
     free(path);
