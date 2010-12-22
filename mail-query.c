@@ -2,6 +2,7 @@
 
 #include <ctype.h>
 #include <dirent.h>
+#include <errno.h>
 #include <limits.h>
 #include <regex.h>
 #include <stdio.h>
@@ -148,7 +149,7 @@ int walk_maildir(const char *path) {
 
   dirp = opendir(path);
   if (!dirp) {
-    perror("opendir");
+    fprintf(stderr, "opendir: %s: %s\n", strerror(errno), path);
     return(1);
   }
 
@@ -166,8 +167,7 @@ int walk_maildir(const char *path) {
 
       fp = fopen(filename, "r");
       if (!fp) {
-        fprintf(stderr, "%s: ", filename);
-        perror("fopen");
+        fprintf(stderr, "fopen: %s: %s: ", strerror(errno), filename);
         continue;
       }
 
@@ -183,20 +183,25 @@ int walk_maildir(const char *path) {
 }
 
 int main(int argc, char *argv[]) {
-  int i;
+  int i, ret;
+  char errbuf[PATH_MAX];
 
   if (argc < 3) {
     printf("usage: %s <regex> </path/to/mdir> ...\n", argv[0]);
     return(EXIT_FAILURE);
   }
 
-  if (regcomp(&regex, argv[1], REGEX_OPTS) != 0) {
-    fprintf(stderr, "failed to compile regex: %s\n", argv[1]);
+  ret = regcomp(&regex, argv[1], REGEX_OPTS);
+  if (ret != 0) {
+    regerror(ret, &regex, errbuf, PATH_MAX);
+    fprintf(stderr, "failed to compile regex: %s: %s\n", errbuf, argv[1]);
     return(1);
   }
 
-  if (regcomp(&emailverifier, EMAIL_VERIFY_REGEX, REGEX_OPTS) != 0) {
-    fprintf(stderr, "failed to compile regex: %s\n", EMAIL_VERIFY_REGEX);
+  ret = regcomp(&emailverifier, EMAIL_VERIFY_REGEX, REGEX_OPTS);
+  if (ret != 0) {
+    regerror(ret, &regex, errbuf, PATH_MAX);
+    fprintf(stderr, "failed to compile regex: %s: %s\n", errbuf, EMAIL_VERIFY_REGEX);
     return(1);
   }
 
