@@ -22,8 +22,6 @@ static regex_t emailverifier;
 static address_t **entries = NULL;
 static int entry_count = 0;
 
-static const char *subdirs[] = { "new", "cur", NULL };
-
 static int address_cmp(const void *a1, const void *a2) {
   address_t *address1 = *(address_t**)a1;
   address_t *address2 = *(address_t**)a2;
@@ -122,33 +120,6 @@ int parse_mailfile(FILE *fp) {
   return(0);
 }
 
-int read_maildir(const char *path, DIR *dirp) {
-  struct dirent *dentry;
-  char *filename;
-  FILE *fp;
-
-  while ((dentry = readdir(dirp)) != NULL) {
-    if (dentry->d_type != DT_REG) {
-      continue;
-    }
-
-    asprintf(&filename, "%s/%s", path, dentry->d_name);
-
-    fp = fopen(filename, "r");
-    if (!fp) {
-      fprintf(stderr, "%s: ", filename);
-      perror("fopen");
-      continue;
-    }
-
-    free(filename);
-    parse_mailfile(fp);
-    fclose(fp);
-  }
-
-  return(0);
-}
-
 void print_entries() {
   int i;
   char *prev_email = NULL;
@@ -165,10 +136,49 @@ void print_entries() {
   }
 }
 
-int main(int argc, char *argv[]) {
-  char *path;
-  const char **subdir;
+int walk_maildir(const char *path) {
   DIR *dirp;
+  FILE *fp;
+  struct dirent *dentry;
+  char *subdir, *filename;
+
+  dirp = opendir(path);
+  if (!dirp) {
+    perror("opendir");
+    return(1);
+  }
+
+  while ((dentry = readdir(dirp)) != NULL) {
+    if (strcmp(dentry->d_name, ".") == 0 || strcmp(dentry->d_name, "..") == 0) {
+      continue;
+    }
+
+    if (dentry->d_type == DT_DIR) {
+      asprintf(&subdir, "%s/%s", path, dentry->d_name);
+      walk_maildir(subdir);
+      free(subdir);
+    } else if (dentry->d_type == DT_REG) {
+      asprintf(&filename, "%s/%s", path, dentry->d_name);
+
+      fp = fopen(filename, "r");
+      if (!fp) {
+        fprintf(stderr, "%s: ", filename);
+        perror("fopen");
+        continue;
+      }
+
+      free(filename);
+      parse_mailfile(fp);
+      fclose(fp);
+    }
+  }
+
+  closedir(dirp);
+
+  return(0);
+}
+
+int main(int argc, char *argv[]) {
   int i;
 
   if (argc < 3) {
@@ -187,18 +197,7 @@ int main(int argc, char *argv[]) {
   }
 
   for (i = 2; i < argc; i++) {
-    for (subdir = subdirs; *subdir; subdir++) {
-      asprintf(&path, "%s/%s", argv[i], *subdir);
-      dirp = opendir(path);
-      if (!dirp) {
-        fprintf(stderr, "error: unable to read from path: %s: ", path);
-        perror("");
-        continue;
-      }
-      read_maildir(path, dirp);
-      free(path);
-      closedir(dirp);
-    }
+    walk_maildir(argv[i]);
   }
 
   regfree(&regex);
