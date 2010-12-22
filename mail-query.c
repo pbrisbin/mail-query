@@ -41,8 +41,6 @@ void add_entries(char *str) {
       fprintf(stderr, "strdup failed");
       return;
     }
-
-    free(entry);
   }
 
   free(str);
@@ -51,6 +49,7 @@ void add_entries(char *str) {
 void find_from(char *fn) {
   FILE *file;
   char line[1000];
+  char *entry;
 
   file = fopen(fn, "r");
   if (!file) {
@@ -61,7 +60,9 @@ void find_from(char *fn) {
   while ((fgets(line, 1000, file) != NULL)) {
     if (strncmp("From: ", line, 6) == 0) {
       /* trim leading "From: " and trailing "\n" */
-      add_entries(strndup(line + 6, strlen(line)-1));
+      entry = strndup(line + 6, strlen(line) - 1);
+      add_entries(entry);
+      free(entry);
       break;
     }
   }
