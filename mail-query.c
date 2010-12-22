@@ -77,7 +77,7 @@ int read_from_dir(char *path) {
   char *fullpath, *filename;
 
   if ((dir = opendir(path)) == NULL) {
-    fprintf(stderr, "%s: unable to open directory.\n", dir);
+    fprintf(stderr, "%s: unable to open directory.\n", path);
     return(1);
   }
 
@@ -94,9 +94,11 @@ int read_from_dir(char *path) {
   }
 
   if (closedir(dir) == -1) {
-    fprintf(stderr, "%s: unable to close directory.\n", dir);
+    fprintf(stderr, "%s: unable to close directory.\n", path);
     return(1);
   }
+
+  return(0);
 }
 
 /* sorting/uniquing code bogarted from dmenu_path */
