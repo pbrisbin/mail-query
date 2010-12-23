@@ -7,7 +7,5 @@ MANPREFIX ?= ${PREFIX}/share/man
 
 # compiler flags
 CC = c99
-CPPFLAGS =
-CFLAGS += -g -pedantic -Wall -Wextra ${CPPFLAGS}
-LDFLAGS =
+CFLAGS += -g -pedantic -Wall -Wextra
 
