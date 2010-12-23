@@ -30,7 +30,7 @@ static int address_cmp(const void *a1, const void *a2) {
   return (strcmp(address1->email, address2->email));
 }
 
-char *strtrim(char *str) {
+static char *strtrim(char *str) {
   char *pch = str;
 
   if (!str || *str == '\0') {
@@ -57,7 +57,7 @@ char *strtrim(char *str) {
   return(str);
 }
 
-void add_address(address_t *address) {
+static void add_address(address_t *address) {
   if (!(entries = realloc(entries, ++entry_count * sizeof *entries))) {
     fprintf(stderr, "realloc failed");
     exit(EXIT_FAILURE);
@@ -66,7 +66,7 @@ void add_address(address_t *address) {
   entries[entry_count - 1] = address;
 }
 
-address_t *parse_from(char *line) {
+static address_t *parse_from(char *line) {
   char *name, *email, *ptr;
   address_t *address;
 
@@ -103,7 +103,7 @@ address_t *parse_from(char *line) {
   return(address);
 }
 
-int parse_mailfile(FILE *fp) {
+static int parse_mailfile(FILE *fp) {
   char line[PATH_MAX];
   address_t *entry;
 
@@ -121,7 +121,7 @@ int parse_mailfile(FILE *fp) {
   return(0);
 }
 
-void print_entries() {
+static void print_entries() {
   int i;
   char *prev_email = NULL;
   address_t **entry;
@@ -141,7 +141,7 @@ void print_entries() {
   }
 }
 
-int walk_maildir(const char *path) {
+static int walk_maildir(const char *path) {
   DIR *dirp;
   FILE *fp;
   struct dirent *dentry;
