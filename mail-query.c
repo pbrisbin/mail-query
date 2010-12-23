@@ -195,14 +195,14 @@ int main(int argc, char *argv[]) {
   if (ret != 0) {
     regerror(ret, &regex, errbuf, PATH_MAX);
     fprintf(stderr, "failed to compile regex: %s: %s\n", errbuf, argv[1]);
-    return(1);
+    return(EXIT_FAILURE);
   }
 
   ret = regcomp(&emailverifier, EMAIL_VERIFY_REGEX, REGEX_OPTS);
   if (ret != 0) {
     regerror(ret, &regex, errbuf, PATH_MAX);
     fprintf(stderr, "failed to compile regex: %s: %s\n", errbuf, EMAIL_VERIFY_REGEX);
-    return(1);
+    return(EXIT_FAILURE);
   }
 
   for (i = 2; i < argc; i++) {
