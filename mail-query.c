@@ -108,14 +108,14 @@ static int parse_mailfile(FILE *fp) {
   address_t *entry;
 
   while (fgets(line, PATH_MAX, fp) != NULL) {
-    if (strncmp(line, "From: ", 6) != 0) {
-      continue;
+    if (strncmp(line, "From: ", 6) == 0) {
+      break;
     }
+  }
 
-    entry = parse_from(&line[6]);
-    if (entry) {
-      add_address(entry);
-    }
+  entry = parse_from(&line[6]);
+  if (entry) {
+    add_address(entry);
   }
 
   return(0);
