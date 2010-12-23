@@ -145,7 +145,8 @@ static int walk_maildir(const char *path) {
   DIR *dirp;
   FILE *fp;
   struct dirent *dentry;
-  char *subdir, *filename;
+  char *subdir;
+  char filename[PATH_MAX];
 
   dirp = opendir(path);
   if (!dirp) {
@@ -154,26 +155,26 @@ static int walk_maildir(const char *path) {
   }
 
   while ((dentry = readdir(dirp)) != NULL) {
-    if (strcmp(dentry->d_name, ".") == 0 || strcmp(dentry->d_name, "..") == 0) {
-      continue;
-    }
-
     if (dentry->d_type == DT_DIR) {
+      if (strcmp(dentry->d_name, ".") == 0 || strcmp(dentry->d_name, "..") == 0) {
+        continue;
+      }
+
       asprintf(&subdir, "%s/%s", path, dentry->d_name);
       walk_maildir(subdir);
       free(subdir);
     } else if (dentry->d_type == DT_REG) {
-      asprintf(&filename, "%s/%s", path, dentry->d_name);
+      snprintf(filename, PATH_MAX, "%s/%s", path, dentry->d_name);
 
       fp = fopen(filename, "r");
       if (!fp) {
-        fprintf(stderr, "fopen: %s: %s: ", strerror(errno), filename);
+        fprintf(stderr, "fopen: %s: %s: ", filename, strerror(errno));
         continue;
       }
 
-      free(filename);
       parse_mailfile(fp);
       fclose(fp);
+      break;
     }
   }
 
