@@ -174,7 +174,6 @@ static int walk_maildir(const char *path) {
 
       parse_mailfile(fp);
       fclose(fp);
-      break;
     }
   }
 
