@@ -23,6 +23,19 @@ static regex_t emailverifier;
 static address_t **entries = NULL;
 static int entry_count = 0;
 
+static void free_entries() {
+    int i;
+    address_t **entry;
+
+    for (i = 0, entry = entries; i < entry_count; i++, entry++) {
+        free((*entry)->name);
+        free((*entry)->email);
+        free((*entry));
+    }
+
+    free(entries);
+}
+
 static int address_cmp(const void *a1, const void *a2) {
     address_t *address1 = *(address_t**)a1;
     address_t *address2 = *(address_t**)a2;
@@ -211,7 +224,7 @@ int main(int argc, char *argv[]) {
     qsort(entries, entry_count, sizeof *entries, address_cmp); 
     print_entries();
 
-    free(entries);
+    free_entries(entries);
 
     return EXIT_SUCCESS;
 }
