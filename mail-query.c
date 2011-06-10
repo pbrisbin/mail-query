@@ -27,34 +27,37 @@ static int address_cmp(const void *a1, const void *a2) {
     address_t *address1 = *(address_t**)a1;
     address_t *address2 = *(address_t**)a2;
 
-    return (strcmp(address1->email, address2->email));
+    return strcmp(address1->email, address2->email);
 }
 
 static char *strtrim(char *str) {
     char *pch = str;
 
     if (!str || *str == '\0') {
-        return(str);
+        return str;
     }
 
     while (isspace((unsigned char)*pch)) {
         pch++;
     }
+
     if (pch != str) {
         memmove(str, pch, (strlen(pch) + 1));
     }
 
     if (*str == '\0') {
-        return(str);
+        return str;
     }
 
     pch = (str + (strlen(str) - 1));
+
     while (isspace((unsigned char)*pch)) {
         pch--;
     }
+
     *++pch = '\0';
 
-    return(str);
+    return str;
 }
 
 static void add_address(address_t *address) {
@@ -72,7 +75,7 @@ static address_t *parse_from(char *line) {
 
     ptr = strchr(line, '<');
     if (!ptr) {
-        return(NULL);
+        return NULL;
     }
 
     *ptr = '\0';
@@ -84,41 +87,39 @@ static address_t *parse_from(char *line) {
     strtrim(email);
 
     if (strlen(name) == 0 || strlen(email) == 0) {
-        return(NULL);
+        return NULL;
     }
 
     if (regexec(&emailverifier, email, 0, 0, 0) == REG_NOMATCH) {
-        return(NULL);
+        return NULL;
     }
 
     if (regexec(&regex, name, 0, 0, 0) == REG_NOMATCH &&
             regexec(&regex, email, 0, 0, 0) == REG_NOMATCH) {
-        return(NULL);;
+        return NULL;
     }
 
     address = malloc(sizeof *address);
     address->name = strdup(name);
     address->email = strdup(email);
 
-    return(address);
+    return address;
 }
 
 static int parse_mailfile(FILE *fp) {
     char line[PATH_MAX];
     address_t *entry;
 
-    while (fgets(line, PATH_MAX, fp) != NULL) {
+    while (fgets(line, PATH_MAX, fp)) {
         if (strncmp(line, "From: ", 6) == 0) {
             break;
         }
     }
 
-    entry = parse_from(&line[6]);
-    if (entry) {
+    if ((entry = parse_from(&line[6])))
         add_address(entry);
-    }
 
-    return(0);
+    return 0;
 }
 
 static void print_entries() {
@@ -142,19 +143,18 @@ static void print_entries() {
 }
 
 static int walk_maildir(const char *path) {
-    DIR *dirp;
-    FILE *fp;
+    DIR           *dirp;
+    FILE          *fp;
     struct dirent *dentry;
-    char *subdir;
-    char filename[PATH_MAX];
+    char          *subdir;
+    char          filename[PATH_MAX];
 
-    dirp = opendir(path);
-    if (!dirp) {
+    if (!(dirp = opendir(path))) {
         fprintf(stderr, "opendir: %s: %s\n", strerror(errno), path);
-        return(1);
+        return 1;
     }
 
-    while ((dentry = readdir(dirp)) != NULL) {
+    while ((dentry = readdir(dirp))) {
         if (dentry->d_type == DT_DIR) {
             if (strcmp(dentry->d_name, ".") == 0 || strcmp(dentry->d_name, "..") == 0) {
                 continue;
@@ -166,8 +166,7 @@ static int walk_maildir(const char *path) {
         } else if (dentry->d_type == DT_REG) {
             snprintf(filename, PATH_MAX, "%s/%s", path, dentry->d_name);
 
-            fp = fopen(filename, "r");
-            if (!fp) {
+            if (!(fp = fopen(filename, "r"))) {
                 fprintf(stderr, "fopen: %s: %s: ", filename, strerror(errno));
                 continue;
             }
@@ -179,7 +178,7 @@ static int walk_maildir(const char *path) {
 
     closedir(dirp);
 
-    return(0);
+    return 0;
 }
 
 int main(int argc, char *argv[]) {
@@ -188,26 +187,23 @@ int main(int argc, char *argv[]) {
 
     if (argc < 3) {
         printf("usage: %s <regex> </path/to/mdir> ...\n", argv[0]);
-        return(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
-    ret = regcomp(&regex, argv[1], REGEX_OPTS);
-    if (ret != 0) {
+    if ((ret = regcomp(&regex, argv[1], REGEX_OPTS)) != 0) {
         regerror(ret, &regex, errbuf, PATH_MAX);
         fprintf(stderr, "failed to compile regex: %s: %s\n", errbuf, argv[1]);
-        return(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
-    ret = regcomp(&emailverifier, EMAIL_VERIFY_REGEX, REGEX_OPTS);
-    if (ret != 0) {
+    if ((ret = regcomp(&emailverifier, EMAIL_VERIFY_REGEX, REGEX_OPTS)) != 0) {
         regerror(ret, &regex, errbuf, PATH_MAX);
         fprintf(stderr, "failed to compile regex: %s: %s\n", errbuf, EMAIL_VERIFY_REGEX);
-        return(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
-    for (i = 2; i < argc; i++) {
+    for (i = 2; i < argc; i++)
         walk_maildir(argv[i]);
-    }
 
     regfree(&regex);
     regfree(&emailverifier);
@@ -215,6 +211,8 @@ int main(int argc, char *argv[]) {
     qsort(entries, entry_count, sizeof *entries, address_cmp); 
     print_entries();
 
-    return(EXIT_SUCCESS);
+    free(entries);
+
+    return EXIT_SUCCESS;
 }
 
