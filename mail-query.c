@@ -223,8 +223,7 @@ int main(int argc, char *argv[]) {
 
     qsort(entries, entry_count, sizeof *entries, address_cmp); 
     print_entries();
-
-    free_entries(entries);
+    free_entries();
 
     return EXIT_SUCCESS;
 }
