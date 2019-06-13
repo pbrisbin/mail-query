@@ -20,3 +20,7 @@ Add to your `muttrc`:
 ~~~
 set query_command = "mail-query '%s' ~/Mail/INBOX"
 ~~~
+
+## Extensions:
+
+The plug-in [vim-mailquery](https://github.com/Konfekt/vim-mailquery) lets you complete e-mail addresses inside Vim via mail-query.
