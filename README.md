@@ -1,5 +1,7 @@
 # Mail Query
 
+**Archived**: I don't use or maintain this project anymore. Forks welcome.
+
 Query the contents of a Maildir (e.g. `~/Mail/INBOX`), for `From:` addresses.
 Print these  addresses in the format expected by mutt as a `query_command`,
 similar to `abook --mutt-query foo`.
